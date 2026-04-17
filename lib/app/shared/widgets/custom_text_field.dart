@@ -26,7 +26,7 @@ class CustomTextField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Usando o Theme para garantir que a cor venha do nosso Design System
+    
     final theme = Theme.of(context);
 
     return TextFormField(

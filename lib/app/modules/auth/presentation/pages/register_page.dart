@@ -1,49 +1,51 @@
 import 'package:flutter/material.dart';
 
-import '../../../../app_routes.dart';
 import '../../../../shared/widgets/app_logo.dart';
 import '../../../../shared/widgets/custom_button.dart';
 import '../../../../shared/widgets/custom_text_field.dart';
 
-class LoginPage extends StatefulWidget {
-  const LoginPage({super.key});
+class RegisterPage extends StatefulWidget {
+  const RegisterPage({super.key});
 
   @override
-  State<LoginPage> createState() => _LoginPageState();
+  State<RegisterPage> createState() => _RegisterPageState();
 }
 
-class _LoginPageState extends State<LoginPage> {
+class _RegisterPageState extends State<RegisterPage> {
   final _formKey = GlobalKey<FormState>();
+  late TextEditingController nomeController;
   late TextEditingController emailController;
   late TextEditingController senhaController;
+  late TextEditingController confirmarSenhaController;
 
   @override
   void initState() {
     super.initState();
+    nomeController = TextEditingController();
     emailController = TextEditingController();
     senhaController = TextEditingController();
+    confirmarSenhaController = TextEditingController();
   }
 
   @override
   void dispose() {
+    nomeController.dispose();
     emailController.dispose();
     senhaController.dispose();
+    confirmarSenhaController.dispose();
     super.dispose();
   }
 
-  void _executarLogin() {
+  void _executarRegistro() {
     if (!_formKey.currentState!.validate()) return;
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: const Text('Login executado com sucesso'),
+        content: const Text('Registro realizado com sucesso'),
         backgroundColor: Theme.of(context).primaryColor,
       ),
     );
-  }
-
-  void _irParaRegistro() {
-    Navigator.pushNamed(context, AppRoutes.register);
+    Navigator.of(context).pop();
   }
 
   @override
@@ -62,11 +64,23 @@ class _LoginPageState extends State<LoginPage> {
                 AppLogo(width: double.infinity, height: 180),
                 const SizedBox(height: 24),
                 Text(
-                  'Bem-vindo de volta',
+                  'Criar conta',
                   style: theme.textTheme.headlineMedium
                       ?.copyWith(fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 32),
+                CustomTextField(
+                  label: 'Nome Completo',
+                  controller: nomeController,
+                  prefixIcon: Icons.person,
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Informe seu nome completo';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 16),
                 CustomTextField(
                   label: 'E-mail',
                   controller: emailController,
@@ -88,24 +102,43 @@ class _LoginPageState extends State<LoginPage> {
                   controller: senhaController,
                   isPassword: true,
                   prefixIcon: Icons.lock,
-                  textInputAction: TextInputAction.done,
                   validator: (value) {
                     if (value == null || value.isEmpty) {
                       return 'Informe sua senha';
+                    }
+                    if (value.length < 6) {
+                      return 'A senha deve ter ao menos 6 caracteres';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 16),
+                CustomTextField(
+                  label: 'Confirmar Senha',
+                  controller: confirmarSenhaController,
+                  isPassword: true,
+                  prefixIcon: Icons.lock,
+                  textInputAction: TextInputAction.done,
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Confirme sua senha';
+                    }
+                    if (value != senhaController.text) {
+                      return 'As senhas não coincidem';
                     }
                     return null;
                   },
                 ),
                 const SizedBox(height: 32),
                 CustomButton(
-                  label: 'Entrar',
-                  onPressed: _executarLogin,
+                  label: 'Registrar',
+                  onPressed: _executarRegistro,
                 ),
                 const SizedBox(height: 12),
                 TextButton(
-                  onPressed: _irParaRegistro,
+                  onPressed: () => Navigator.of(context).pop(),
                   child: Text(
-                    'Criar conta',
+                    'Já tenho conta',
                     style: TextStyle(color: theme.primaryColor),
                   ),
                 ),

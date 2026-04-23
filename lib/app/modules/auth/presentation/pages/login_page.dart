@@ -5,6 +5,7 @@ import '../../../../shared/mixins/messages_mixin.dart';
 import '../../../../shared/widgets/app_logo.dart';
 import '../../../../shared/widgets/custom_button.dart';
 import '../../../../shared/widgets/custom_text_field.dart';
+import '../../../home/presentation/pages/menu_servicos_page.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -35,8 +36,18 @@ class _LoginPageState extends State<LoginPage> with MessagesMixin {
   void _executarLogin() {
     if (!_formKey.currentState!.validate()) return;
 
-    showSuccess('Login realizado com sucesso');
-    Navigator.pushReplacementNamed(context, AppRoutes.ordemServico);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: const Text('Login executado com sucesso'),
+        backgroundColor: Theme.of(context).primaryColor,
+      ),
+    );
+
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute(
+        builder: (_) => const MenuServicosPage(),
+      ),
+    );
   }
 
   void _irParaRegistro() {

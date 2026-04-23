@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../app_routes.dart';
+import '../../../../shared/mixins/messages_mixin.dart';
 import '../../../../shared/widgets/app_logo.dart';
 import '../../../../shared/widgets/custom_button.dart';
 import '../../../../shared/widgets/custom_text_field.dart';
@@ -12,7 +13,7 @@ class LoginPage extends StatefulWidget {
   State<LoginPage> createState() => _LoginPageState();
 }
 
-class _LoginPageState extends State<LoginPage> {
+class _LoginPageState extends State<LoginPage> with MessagesMixin {
   final _formKey = GlobalKey<FormState>();
   late TextEditingController emailController;
   late TextEditingController senhaController;
@@ -34,12 +35,8 @@ class _LoginPageState extends State<LoginPage> {
   void _executarLogin() {
     if (!_formKey.currentState!.validate()) return;
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: const Text('Login executado com sucesso'),
-        backgroundColor: Theme.of(context).primaryColor,
-      ),
-    );
+    showSuccess('Login realizado com sucesso');
+    Navigator.pushReplacementNamed(context, AppRoutes.ordemServico);
   }
 
   void _irParaRegistro() {
@@ -92,6 +89,9 @@ class _LoginPageState extends State<LoginPage> {
                   validator: (value) {
                     if (value == null || value.isEmpty) {
                       return 'Informe sua senha';
+                    }
+                    if (value.length < 7) {
+                      return 'A senha deve ter mais de 6 caracteres';
                     }
                     return null;
                   },

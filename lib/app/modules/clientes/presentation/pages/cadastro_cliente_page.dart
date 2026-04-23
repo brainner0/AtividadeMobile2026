@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:mask_text_input_formatter/mask_text_input_formatter.dart';
 
-import '../../../../core/helpers/loader_mixin.dart';
-import '../../../../core/helpers/messages_mixin.dart';
-import '../../../../shared/widgets/app_logo.dart';
-import '../../../../shared/widgets/custom_button.dart';
-import '../../../../shared/widgets/custom_text_field.dart';
+import 'package:serviceflow/app/core/helpers/loader_mixin.dart';
+import 'package:serviceflow/app/core/helpers/messages_mixin.dart';
+import 'package:serviceflow/app/shared/widgets/app_logo.dart';
+import 'package:serviceflow/app/shared/widgets/custom_button.dart';
+import 'package:serviceflow/app/shared/widgets/custom_text_field.dart';
 
 class CadastroClientePage extends StatefulWidget {
   const CadastroClientePage({super.key});

@@ -1,32 +1,48 @@
 import 'package:flutter/material.dart';
 
 import '../../../clientes/presentation/pages/cadastro_cliente_page.dart';
-// ajuste este import para o nome real da sua tela de OS
-//import '../../../ordens_servico/presentation/pages/cadastro_os_page.dart';
+import '../../../ordens_servico/presentation/pages/cadastro_os_page.dart';
+import '../../../dashboard/presentation/pages/dashboard_gestao_page.dart';
 
 class MenuServicosPage extends StatelessWidget {
   const MenuServicosPage({super.key});
 
-  void _abrirCadastroCliente(BuildContext context) {
+  void _navigateTo(BuildContext context, Widget page) {
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (_) => const CadastroClientePage(),
+        builder: (_) => page,
       ),
     );
   }
-/*
-  void _abrirCadastroOS(BuildContext context) {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (_) => const CadastroOsPage(),
-      ),
-    );
+
+  void _logout(BuildContext context) {
+    Navigator.of(context).pop();
   }
-*/
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+
+    final menuItems = [
+      _MenuItem(
+        icon: Icons.dashboard_outlined,
+        title: 'Dashboard de Gestão',
+        subtitle: 'Resumo de OS, faturamento e produtividade',
+        page: const DashboardGestaoPage(),
+      ),
+      _MenuItem(
+        icon: Icons.person_add_alt_1,
+        title: 'Cadastrar Cliente',
+        subtitle: 'Cadastrar dados do cliente',
+        page: const CadastroClientePage(),
+      ),
+      _MenuItem(
+        icon: Icons.assignment_add,
+        title: 'Cadastrar OS',
+        subtitle: 'Criar uma ordem de serviço',
+        page: const CadastroOsPage(),
+      ),
+    ];
 
     return Scaffold(
       appBar: AppBar(
@@ -47,26 +63,32 @@ class MenuServicosPage extends StatelessWidget {
                 ),
                 textAlign: TextAlign.center,
               ),
+              const SizedBox(height: 8),
+              Text(
+                'Acesse as principais funcionalidades do sistema.',
+                style: theme.textTheme.bodyMedium,
+                textAlign: TextAlign.center,
+              ),
               const SizedBox(height: 32),
-              _MenuButton(
-                icon: Icons.person_add_alt_1,
-                title: 'Cadastrar Cliente',
-                subtitle: 'Cadastrar dados do cliente',
-                onTap: () => _abrirCadastroCliente(context),
+              Expanded(
+                child: ListView.separated(
+                  itemCount: menuItems.length,
+                  separatorBuilder: (_, __) => const SizedBox(height: 16),
+                  itemBuilder: (context, index) {
+                    final item = menuItems[index];
+
+                    return _MenuButton(
+                      icon: item.icon,
+                      title: item.title,
+                      subtitle: item.subtitle,
+                      onTap: () => _navigateTo(context, item.page),
+                    );
+                  },
+                ),
               ),
-              /* const SizedBox(height: 16),
-              _MenuButton(
-                icon: Icons.assignment_add,
-                title: 'Cadastrar OS',
-                subtitle: 'Criar uma ordem de serviço',
-                onTap: () => _abrirCadastroOS(context),
-              ),
-              */
-              const Spacer(),
+              const SizedBox(height: 16),
               OutlinedButton.icon(
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
+                onPressed: () => _logout(context),
                 icon: const Icon(Icons.logout),
                 label: const Text('Sair'),
               ),
@@ -76,6 +98,20 @@ class MenuServicosPage extends StatelessWidget {
       ),
     );
   }
+}
+
+class _MenuItem {
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final Widget page;
+
+  const _MenuItem({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.page,
+  });
 }
 
 class _MenuButton extends StatelessWidget {
@@ -97,10 +133,14 @@ class _MenuButton extends StatelessWidget {
 
     return Card(
       elevation: 2,
+      clipBehavior: Clip.antiAlias,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(14),
+      ),
       child: ListTile(
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 20,
-          vertical: 12,
+          vertical: 14,
         ),
         leading: CircleAvatar(
           backgroundColor: theme.primaryColor.withOpacity(0.12),

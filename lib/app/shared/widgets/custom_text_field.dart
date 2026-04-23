@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 class CustomTextField extends StatelessWidget {
   final TextEditingController controller;
@@ -10,6 +11,7 @@ class CustomTextField extends StatelessWidget {
   final TextInputType keyboardType;
   final TextInputAction textInputAction;
   final VoidCallback? onFieldSubmitted;
+  final List<TextInputFormatter>? inputFormatters;
 
   const CustomTextField({
     super.key,
@@ -22,11 +24,11 @@ class CustomTextField extends StatelessWidget {
     this.keyboardType = TextInputType.text,
     this.textInputAction = TextInputAction.next,
     this.onFieldSubmitted,
+    this.inputFormatters,
   });
 
   @override
   Widget build(BuildContext context) {
-    
     final theme = Theme.of(context);
 
     return TextFormField(
@@ -34,6 +36,7 @@ class CustomTextField extends StatelessWidget {
       obscureText: isPassword,
       validator: validator,
       keyboardType: keyboardType,
+      inputFormatters: inputFormatters,
       textInputAction: textInputAction,
       onFieldSubmitted: (_) => onFieldSubmitted?.call(),
       decoration: InputDecoration(

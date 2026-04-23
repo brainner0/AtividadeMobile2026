@@ -16,6 +16,7 @@ dependencies:
   intl: ^0.18.0
   flutter:
     sdk: flutter
+  mask_text_input_formatter: ^2.9.0
 flutter:
   #assets:
   #  - assets/images/

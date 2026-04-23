@@ -4,6 +4,7 @@ import '../../../../app_routes.dart';
 import '../../../../shared/widgets/app_logo.dart';
 import '../../../../shared/widgets/custom_button.dart';
 import '../../../../shared/widgets/custom_text_field.dart';
+import '../../../home/presentation/pages/menu_servicos_page.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -38,6 +39,12 @@ class _LoginPageState extends State<LoginPage> {
       SnackBar(
         content: const Text('Login executado com sucesso'),
         backgroundColor: Theme.of(context).primaryColor,
+      ),
+    );
+
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute(
+        builder: (_) => const MenuServicosPage(),
       ),
     );
   }

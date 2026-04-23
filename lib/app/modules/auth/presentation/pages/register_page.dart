@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../shared/mixins/messages_mixin.dart';
 import '../../../../shared/widgets/app_logo.dart';
 import '../../../../shared/widgets/custom_button.dart';
 import '../../../../shared/widgets/custom_text_field.dart';
@@ -11,7 +12,7 @@ class RegisterPage extends StatefulWidget {
   State<RegisterPage> createState() => _RegisterPageState();
 }
 
-class _RegisterPageState extends State<RegisterPage> {
+class _RegisterPageState extends State<RegisterPage> with MessagesMixin {
   final _formKey = GlobalKey<FormState>();
   late TextEditingController nomeController;
   late TextEditingController emailController;
@@ -39,12 +40,7 @@ class _RegisterPageState extends State<RegisterPage> {
   void _executarRegistro() {
     if (!_formKey.currentState!.validate()) return;
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: const Text('Registro realizado com sucesso'),
-        backgroundColor: Theme.of(context).primaryColor,
-      ),
-    );
+    showSuccess('Registro realizado com sucesso');
     Navigator.of(context).pop();
   }
 

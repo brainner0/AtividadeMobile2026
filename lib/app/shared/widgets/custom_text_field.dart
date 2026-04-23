@@ -10,6 +10,7 @@ class CustomTextField extends StatelessWidget {
   final String? Function(String?)? validator;
   final TextInputType keyboardType;
   final TextInputAction textInputAction;
+  final int maxLines;
   final VoidCallback? onFieldSubmitted;
   final List<TextInputFormatter>? inputFormatters;
 
@@ -23,6 +24,7 @@ class CustomTextField extends StatelessWidget {
     this.validator,
     this.keyboardType = TextInputType.text,
     this.textInputAction = TextInputAction.next,
+    this.maxLines = 1,
     this.onFieldSubmitted,
     this.inputFormatters,
   });

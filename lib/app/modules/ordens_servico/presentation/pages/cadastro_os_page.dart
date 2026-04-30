@@ -2,12 +2,12 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:signature/signature.dart';
 
 import '../../../clientes/cliente.model.dart';
 import '../../../../shared/mixins/loader_mixin.dart';
 import '../../../../shared/widgets/custom_button.dart';
 import '../../../../shared/widgets/custom_text_field.dart';
+import 'finalizar_os_page.dart';
 
 class CadastroOsPage extends StatefulWidget {
   const CadastroOsPage({super.key});
@@ -23,11 +23,6 @@ class _CadastroOsPageState extends State<CadastroOsPage> with LoaderMixin {
   final _clienteDropdown = TextEditingController();
 
   final ImagePicker _imagePicker = ImagePicker();
-  final SignatureController _signatureController = SignatureController(
-    penStrokeWidth: 3,
-    penColor: Colors.black,
-    exportBackgroundColor: Colors.white,
-  );
 
   // Dados em memória para clientes (simulando banco de dados)
   final List<Cliente> _clientes = [
@@ -40,31 +35,26 @@ class _CadastroOsPageState extends State<CadastroOsPage> with LoaderMixin {
 
   Cliente? _clienteSelecionado;
   XFile? _fotoAntes;
-  XFile? _fotoDepois;
 
   @override
   void dispose() {
     _descricaoController.dispose();
     _valorController.dispose();
     _clienteDropdown.dispose();
-    _signatureController.dispose();
     super.dispose();
   }
 
-  Future<void> _tirarFoto(bool isFotoAntes) async {
+  Future<void> _tirarFotoAntes() async {
     try {
       final XFile? foto = await _imagePicker.pickImage(
         source: ImageSource.camera,
         imageQuality: 80,
+        preferredCameraDevice: CameraDevice.rear,
       );
 
       if (foto != null) {
         setState(() {
-          if (isFotoAntes) {
-            _fotoAntes = foto;
-          } else {
-            _fotoDepois = foto;
-          }
+          _fotoAntes = foto;
         });
       }
     } catch (e) {
@@ -74,6 +64,12 @@ class _CadastroOsPageState extends State<CadastroOsPage> with LoaderMixin {
         );
       }
     }
+  }
+
+  void _removerFotoAntes() {
+    setState(() {
+      _fotoAntes = null;
+    });
   }
 
   Future<void> _salvarOS() async {
@@ -86,9 +82,10 @@ class _CadastroOsPageState extends State<CadastroOsPage> with LoaderMixin {
       return;
     }
 
-    if (_signatureController.isNotEmpty) {
+    // Foto antes é obrigatória
+    if (_fotoAntes == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Por favor, assine no canvas abaixo')),
+        const SnackBar(content: Text('Tire a foto antes do serviço')),
       );
       return;
     }
@@ -98,26 +95,36 @@ class _CadastroOsPageState extends State<CadastroOsPage> with LoaderMixin {
     await Future.delayed(const Duration(seconds: 2));
     hideLoader();
 
-    // Simular salvamento (aqui você faria a chamada API)
+    // Navegar para página de finalização
     if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Ordem de Serviço salva com sucesso!'),
-          backgroundColor: Colors.green,
+      final resultado = await Navigator.of(context).push<bool>(
+        MaterialPageRoute(
+          builder: (_) => FinalizarOsPage(
+            ordemServicoId: 'OS-${DateTime.now().millisecondsSinceEpoch}',
+            clienteNome: _clienteSelecionado!.nome,
+            fotoAntesPath: _fotoAntes!.path,
+          ),
         ),
       );
 
-      // Limpar formulário
-      _formKey.currentState!.reset();
-      _descricaoController.clear();
-      _valorController.clear();
-      _clienteDropdown.clear();
-      setState(() {
-        _clienteSelecionado = null;
-        _fotoAntes = null;
-        _fotoDepois = null;
-      });
-      _signatureController.clear();
+      if (resultado == true && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Ordem de Serviço concluída com sucesso!'),
+            backgroundColor: Colors.green,
+          ),
+        );
+
+        // Limpar formulário
+        _formKey.currentState!.reset();
+        _descricaoController.clear();
+        _valorController.clear();
+        _clienteDropdown.clear();
+        setState(() {
+          _clienteSelecionado = null;
+          _fotoAntes = null;
+        });
+      }
     }
   }
 
@@ -203,61 +210,16 @@ class _CadastroOsPageState extends State<CadastroOsPage> with LoaderMixin {
 
               // Fotos - Antes
               Text(
-                'Foto Antes',
+                'Foto Antes *',
                 style: Theme.of(context).textTheme.titleMedium,
               ),
               const SizedBox(height: 8),
-              _buildFotoContainer(
-                foto: _fotoAntes,
-                onTap: () => _tirarFoto(true),
-                label: 'Tirar Foto Antes',
-              ),
-              const SizedBox(height: 20),
-
-              // Fotos - Depois
-              Text(
-                'Foto Depois',
-                style: Theme.of(context).textTheme.titleMedium,
-              ),
-              const SizedBox(height: 8),
-              _buildFotoContainer(
-                foto: _fotoDepois,
-                onTap: () => _tirarFoto(false),
-                label: 'Tirar Foto Depois',
-              ),
-              const SizedBox(height: 20),
-
-              // Assinatura
-              Text(
-                'Assinatura do Cliente',
-                style: Theme.of(context).textTheme.titleMedium,
-              ),
-              const SizedBox(height: 8),
-              Container(
-                height: 150,
-                decoration: BoxDecoration(
-                  border: Border.all(color: Colors.grey),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(8),
-                  child: Signature(
-                    controller: _signatureController,
-                    backgroundColor: Colors.white,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 8),
-              TextButton.icon(
-                onPressed: () => _signatureController.clear(),
-                icon: const Icon(Icons.clear),
-                label: const Text('Limpar Assinatura'),
-              ),
+              _buildFotoAntesContainer(),
               const SizedBox(height: 30),
 
               // Botão Salvar
               CustomButton(
-                label: 'Salvar Ordem de Serviço',
+                label: 'Salvar e Finalizar OS',
                 onPressed: _salvarOS,
               ),
               const SizedBox(height: 20),
@@ -268,13 +230,68 @@ class _CadastroOsPageState extends State<CadastroOsPage> with LoaderMixin {
     );
   }
 
-  Widget _buildFotoContainer({
-    required XFile? foto,
-    required VoidCallback onTap,
-    required String label,
-  }) {
+  Widget _buildFotoAntesContainer() {
+    if (_fotoAntes != null) {
+      return GestureDetector(
+        onTap: _removerFotoAntes,
+        child: Stack(
+          children: [
+            Container(
+              height: 150,
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.green, width: 2),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: Image.file(
+                  File(_fotoAntes!.path),
+                  fit: BoxFit.cover,
+                  width: double.infinity,
+                ),
+              ),
+            ),
+            Positioned(
+              top: 8,
+              right: 8,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: Colors.green,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.check, color: Colors.white, size: 16),
+                    SizedBox(width: 4),
+                    Text(
+                      'Foto capturada',
+                      style: TextStyle(color: Colors.white, fontSize: 12),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            Positioned(
+              bottom: 8,
+              right: 8,
+              child: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.red,
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: const Icon(Icons.close, color: Colors.white, size: 20),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
     return GestureDetector(
-      onTap: onTap,
+      onTap: _tirarFotoAntes,
       child: Container(
         height: 150,
         decoration: BoxDecoration(
@@ -282,33 +299,32 @@ class _CadastroOsPageState extends State<CadastroOsPage> with LoaderMixin {
           border: Border.all(color: Colors.grey),
           borderRadius: BorderRadius.circular(8),
         ),
-        child: foto != null
-            ? ClipRRect(
-                borderRadius: BorderRadius.circular(8),
-                child: Image.file(
-                  File(foto.path),
-                  fit: BoxFit.cover,
-                  width: double.infinity,
-                ),
-              )
-            : Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.camera_alt,
-                    size: 48,
-                    color: Colors.grey[600],
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    label,
-                    style: TextStyle(
-                      color: Colors.grey[600],
-                      fontSize: 16,
-                    ),
-                  ),
-                ],
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.camera_alt,
+              size: 48,
+              color: Colors.grey[600],
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Tirar Foto Antes',
+              style: TextStyle(
+                color: Colors.grey[600],
+                fontSize: 16,
               ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              'Clique para capturar o estado inicial',
+              style: TextStyle(
+                color: Colors.grey[400],
+                fontSize: 12,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

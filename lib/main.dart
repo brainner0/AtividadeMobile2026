@@ -1,13 +1,19 @@
 import 'package:flutter/material.dart';
 
 import 'app/app_widget.dart';
+import 'database/db_helper.dart';
 
-void main() {
+void main() async {
   // 1. Garante a inicialização da comunicação com o sistema nativo
   WidgetsFlutterBinding.ensureInitialized();
 
-  // 2. Exemplo: Aqui deve-se carregar o Banco de Dados ou as Configurações
-  // await DatabaseHelper.instance.init();
+  // 2. Inicializa o banco de dados
+  try {
+    final db = await DbHelper.instance.database;
+    debugPrint('✅ SQLite inicializado com sucesso!');
+  } catch (e) {
+    debugPrint('❌ Erro ao inicializar SQLite: $e');
+  }
 
   runApp(const AppEntry());
 }

@@ -6,20 +6,18 @@ import 'package:signature/signature.dart';
 
 import '../../../../shared/mixins/loader_mixin.dart';
 import '../../../../shared/widgets/custom_button.dart';
+import '../../../../../models/ordem_servico_model.dart';
+import '../../../../../repositories/ordem_servico_repository.dart';
 
 /// Página para finalização da Ordem de Serviço
 /// Deve ser acessada quando o técnico finalizar o serviço
 /// Captura: Foto Depois + Assinatura do Cliente
 class FinalizarOsPage extends StatefulWidget {
-  final String? ordemServicoId;
-  final String? clienteNome;
-  final String? fotoAntesPath;
+  final int ordemServicoId;
 
   const FinalizarOsPage({
     super.key,
-    this.ordemServicoId,
-    this.clienteNome,
-    this.fotoAntesPath,
+    required this.ordemServicoId,
   });
 
   @override
@@ -33,9 +31,51 @@ class _FinalizarOsPageState extends State<FinalizarOsPage> with LoaderMixin {
     penColor: Colors.black,
     exportBackgroundColor: Colors.white,
   );
+  final OrdemServicoRepository _osRepository = OrdemServicoRepository();
 
+  OrdemServicoModel? _ordemServico;
   XFile? _fotoDepois;
   bool _assinaturaConfirmada = false;
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _carregarOrdemServico();
+  }
+
+  Future<void> _carregarOrdemServico() async {
+    try {
+      final os = await _osRepository.buscarPorId(widget.ordemServicoId);
+      if (os == null) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Ordem de serviço não encontrada'),
+              backgroundColor: Colors.red,
+            ),
+          );
+          Navigator.of(context).pop();
+        }
+        return;
+      }
+
+      setState(() {
+        _ordemServico = os;
+        _isLoading = false;
+      });
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Erro ao carregar OS: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+        Navigator.of(context).pop();
+      }
+    }
+  }
 
   @override
   void dispose() {
@@ -99,6 +139,8 @@ class _FinalizarOsPageState extends State<FinalizarOsPage> with LoaderMixin {
   }
 
   Future<void> _finalizarOS() async {
+    if (_ordemServico == null) return;
+
     // Validar foto depois
     if (_fotoDepois == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -122,31 +164,80 @@ class _FinalizarOsPageState extends State<FinalizarOsPage> with LoaderMixin {
       return;
     }
 
-    // Exibir LoaderMixin
-    showLoader();
-    await Future.delayed(const Duration(seconds: 2));
-    hideLoader();
+    try {
+      showLoader();
 
-    if (mounted) {
-      // Simular salvamento - aqui você faria a chamada API
-      // Os dados que devem ser armazenados:
-      // - _fotoDepois.path (caminho local da foto)
-      // - _signatureController.toBytes() (assinatura em bytes)
-      
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Ordem de Serviço finalizada com sucesso!'),
-          backgroundColor: Colors.green,
-        ),
+      // Salvar assinatura como arquivo temporário
+      final assinaturaBytes = await _signatureController.toPngBytes();
+      if (assinaturaBytes == null) {
+        throw Exception('Erro ao processar assinatura');
+      }
+
+      // Criar arquivo temporário para a assinatura
+      final tempDir = Directory.systemTemp;
+      final assinaturaFile = File('${tempDir.path}/assinatura_${_ordemServico!.id}.png');
+      await assinaturaFile.writeAsBytes(assinaturaBytes);
+
+      // Finalizar OS no banco
+      await _osRepository.finalizar(
+        _ordemServico!.id!,
+        _fotoDepois!.path,
+        assinaturaFile.path,
       );
 
-      Navigator.of(context).pop(true);
+      hideLoader();
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Ordem de Serviço finalizada com sucesso!'),
+            backgroundColor: Colors.green,
+          ),
+        );
+
+        // Voltar para o menu principal
+        Navigator.of(context).pop();
+      }
+    } catch (e) {
+      hideLoader();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Erro ao finalizar OS: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+
+    if (_isLoading) {
+      return Scaffold(
+        appBar: AppBar(
+          title: const Text('Finalizar OS'),
+          backgroundColor: theme.primaryColor,
+        ),
+        body: const Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
+
+    if (_ordemServico == null) {
+      return Scaffold(
+        appBar: AppBar(
+          title: const Text('Finalizar OS'),
+          backgroundColor: theme.primaryColor,
+        ),
+        body: const Center(
+          child: Text('Ordem de serviço não encontrada'),
+        ),
+      );
+    }
 
     return Scaffold(
       appBar: AppBar(
@@ -159,51 +250,72 @@ class _FinalizarOsPageState extends State<FinalizarOsPage> with LoaderMixin {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             // Informações da OS
-            if (widget.clienteNome != null) ...[
-              Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Row(
-                    children: [
-                      const Icon(Icons.info_outline),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Text(
-                          'Cliente: ${widget.clienteNome}',
-                          style: theme.textTheme.titleMedium,
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        const Icon(Icons.info_outline),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            'Cliente: ${_ordemServico!.clienteNome}',
+                            style: theme.textTheme.titleMedium,
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Telefone: ${_ordemServico!.clienteTelefone}',
+                      style: theme.textTheme.bodyMedium,
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Valor: R\$ ${_ordemServico!.valor.toStringAsFixed(2)}',
+                      style: theme.textTheme.bodyMedium,
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Descrição: ${_ordemServico!.descricao}',
+                      style: theme.textTheme.bodyMedium,
+                    ),
+                  ],
                 ),
               ),
-              const SizedBox(height: 20),
-            ],
+            ),
+            const SizedBox(height: 20),
 
             // Foto Antes (apenas visualização)
-            if (widget.fotoAntesPath != null) ...[
-              Text(
-                'Foto Antes',
-                style: theme.textTheme.titleMedium,
+            Text(
+              'Foto Antes',
+              style: theme.textTheme.titleMedium,
+            ),
+            const SizedBox(height: 8),
+            Container(
+              height: 150,
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.grey),
+                borderRadius: BorderRadius.circular(8),
               ),
-              const SizedBox(height: 8),
-              Container(
-                height: 150,
-                decoration: BoxDecoration(
-                  border: Border.all(color: Colors.grey),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(8),
-                  child: Image.file(
-                    File(widget.fotoAntesPath!),
-                    fit: BoxFit.cover,
-                    width: double.infinity,
-                  ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: Image.file(
+                  File(_ordemServico!.fotoAntesPath),
+                  fit: BoxFit.cover,
+                  width: double.infinity,
+                  errorBuilder: (context, error, stackTrace) {
+                    return const Center(
+                      child: Icon(Icons.image_not_supported, size: 48),
+                    );
+                  },
                 ),
               ),
-              const SizedBox(height: 20),
-            ],
+            ),
+            const SizedBox(height: 20),
 
             // Foto Depois (obrigatória)
             Text(

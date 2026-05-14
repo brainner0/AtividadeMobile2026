@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../clientes/presentation/pages/cadastro_cliente_page.dart';
 import '../../../ordens_servico/presentation/pages/cadastro_os_page.dart';
+import '../../../ordens_servico/presentation/pages/listar_os_page.dart';
 import '../../../dashboard/presentation/pages/dashboard_gestao_page.dart';
 
 class MenuServicosPage extends StatelessWidget {
@@ -41,6 +42,12 @@ class MenuServicosPage extends StatelessWidget {
         title: 'Cadastrar OS',
         subtitle: 'Criar uma ordem de serviço',
         page: const CadastroOsPage(),
+      ),
+      _MenuItem(
+        icon: Icons.check_circle_outline,
+        title: 'Finalizar OS',
+        subtitle: 'Concluir uma ordem de serviço existente',
+        page: const ListarOsPage(),
       ),
     ];
 

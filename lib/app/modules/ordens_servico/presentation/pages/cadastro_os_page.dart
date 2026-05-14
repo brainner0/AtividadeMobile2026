@@ -7,7 +7,8 @@ import '../../../clientes/cliente.model.dart';
 import '../../../../shared/mixins/loader_mixin.dart';
 import '../../../../shared/widgets/custom_button.dart';
 import '../../../../shared/widgets/custom_text_field.dart';
-import 'finalizar_os_page.dart';
+import '../../../../../models/ordem_servico_model.dart';
+import '../../../../../repositories/ordem_servico_repository.dart';
 
 class CadastroOsPage extends StatefulWidget {
   const CadastroOsPage({super.key});
@@ -23,6 +24,7 @@ class _CadastroOsPageState extends State<CadastroOsPage> with LoaderMixin {
   final _clienteDropdown = TextEditingController();
 
   final ImagePicker _imagePicker = ImagePicker();
+  final OrdemServicoRepository _osRepository = OrdemServicoRepository();
 
   // Dados em memória para clientes (simulando banco de dados)
   final List<Cliente> _clientes = [
@@ -90,27 +92,27 @@ class _CadastroOsPageState extends State<CadastroOsPage> with LoaderMixin {
       return;
     }
 
-    // Exibir LoaderMixin por 2 segundos
-    showLoader();
-    await Future.delayed(const Duration(seconds: 2));
-    hideLoader();
+    try {
+      showLoader();
 
-    // Navegar para página de finalização
-    if (mounted) {
-      final resultado = await Navigator.of(context).push<bool>(
-        MaterialPageRoute(
-          builder: (_) => FinalizarOsPage(
-            ordemServicoId: 'OS-${DateTime.now().millisecondsSinceEpoch}',
-            clienteNome: _clienteSelecionado!.nome,
-            fotoAntesPath: _fotoAntes!.path,
-          ),
-        ),
+      // Criar objeto OS
+      final os = OrdemServicoModel(
+        clienteNome: _clienteSelecionado!.nome,
+        clienteTelefone: _clienteSelecionado!.telefone,
+        descricao: _descricaoController.text.trim(),
+        valor: double.parse(_valorController.text.replaceAll(',', '.')),
+        fotoAntesPath: _fotoAntes!.path,
       );
 
-      if (resultado == true && mounted) {
+      // Salvar no banco
+      await _osRepository.salvar(os);
+
+      hideLoader();
+
+      if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Ordem de Serviço concluída com sucesso!'),
+            content: Text('Ordem de serviço salva com sucesso!'),
             backgroundColor: Colors.green,
           ),
         );
@@ -124,6 +126,16 @@ class _CadastroOsPageState extends State<CadastroOsPage> with LoaderMixin {
           _clienteSelecionado = null;
           _fotoAntes = null;
         });
+      }
+    } catch (e) {
+      hideLoader();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Erro ao salvar OS: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
       }
     }
   }
@@ -219,7 +231,7 @@ class _CadastroOsPageState extends State<CadastroOsPage> with LoaderMixin {
 
               // Botão Salvar
               CustomButton(
-                label: 'Salvar e Finalizar OS',
+                label: 'Salvar Ordem de Serviço',
                 onPressed: _salvarOS,
               ),
               const SizedBox(height: 20),

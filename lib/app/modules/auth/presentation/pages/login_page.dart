@@ -5,6 +5,8 @@ import '../../../../shared/mixins/messages_mixin.dart';
 import '../../../../shared/widgets/app_logo.dart';
 import '../../../../shared/widgets/custom_button.dart';
 import '../../../../shared/widgets/custom_text_field.dart';
+import '../../../../shared/widgets/custom_text_field.dart';
+import '../../../../../repositories/usuario_repository.dart';
 import '../../../home/presentation/pages/menu_servicos_page.dart';
 
 class LoginPage extends StatefulWidget {
@@ -16,6 +18,7 @@ class LoginPage extends StatefulWidget {
 
 class _LoginPageState extends State<LoginPage> with MessagesMixin {
   final _formKey = GlobalKey<FormState>();
+  final _usuarioRepository = UsuarioRepository();
   late TextEditingController emailController;
   late TextEditingController senhaController;
 
@@ -33,22 +36,29 @@ class _LoginPageState extends State<LoginPage> with MessagesMixin {
     super.dispose();
   }
 
-  void _executarLogin() {
-    if (!_formKey.currentState!.validate()) return;
+  Future<void> _executarLogin() async {
+  if (!_formKey.currentState!.validate()) return;
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: const Text('Login executado com sucesso'),
-        backgroundColor: Theme.of(context).primaryColor,
-      ),
-    );
+  final usuario = await _usuarioRepository.autenticar(
+    email: emailController.text.trim(),
+    senha: senhaController.text.trim(),
+  );
 
-    Navigator.of(context).pushReplacement(
-      MaterialPageRoute(
-        builder: (_) => const MenuServicosPage(),
-      ),
-    );
+  if (usuario == null) {
+    showError('E-mail ou senha inválidos');
+    return;
   }
+
+  showSuccess('Login realizado com sucesso');
+
+  if (!mounted) return;
+
+  Navigator.of(context).pushReplacement(
+    MaterialPageRoute(
+      builder: (_) => const MenuServicosPage(),
+    ),
+  );
+}
 
   void _irParaRegistro() {
     Navigator.pushNamed(context, AppRoutes.register);

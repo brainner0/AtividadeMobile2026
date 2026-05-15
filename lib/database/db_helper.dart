@@ -2,7 +2,6 @@ import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 
 class DbHelper {
-
   static final DbHelper instance = DbHelper._init();
 
   static Database? _database;
@@ -10,23 +9,19 @@ class DbHelper {
   DbHelper._init();
 
   Future<Database> get database async {
-
     if (_database != null) {
       return _database!;
     }
 
     _database = await _initDB('app.db');
-
     return _database!;
   }
 
   Future<Database> _initDB(String filePath) async {
-
     final dbPath = await getDatabasesPath();
-
     final path = join(dbPath, filePath);
 
-    return await openDatabase(
+    return openDatabase(
       path,
       version: 1,
       onCreate: (db, version) async {
@@ -39,16 +34,49 @@ class DbHelper {
   }
 
   Future<void> _createTables(Database db) async {
-    // Tabela de clientes
     await db.execute('''
-      CREATE TABLE IF NOT EXISTS clientes (
+      CREATE TABLE IF NOT EXISTS usuarios (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        nome TEXT,
-        telefone TEXT
+        nome TEXT NOT NULL,
+        email TEXT NOT NULL UNIQUE,
+        senha TEXT NOT NULL,
+        createdAt TEXT NOT NULL
       )
     ''');
 
-    // Tabela de ordens de serviço
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS clientes (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        nome TEXT NOT NULL,
+        documento TEXT,
+        email TEXT,
+        telefone TEXT NOT NULL,
+        endereco TEXT,
+        createdAt TEXT NOT NULL
+      )
+    ''');
+
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS tecnicos (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        nome TEXT NOT NULL,
+        email TEXT,
+        telefone TEXT NOT NULL,
+        especialidade TEXT,
+        createdAt TEXT NOT NULL
+      )
+    ''');
+
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS servicos (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        nome TEXT NOT NULL,
+        descricao TEXT,
+        valor REAL NOT NULL,
+        createdAt TEXT NOT NULL
+      )
+    ''');
+
     await db.execute('''
       CREATE TABLE IF NOT EXISTS ordens_servico (
         id INTEGER PRIMARY KEY AUTOINCREMENT,

@@ -3,26 +3,19 @@ import 'package:flutter/material.dart';
 import 'app/app_widget.dart';
 import 'database/db_helper.dart';
 
-void main() async {
-  // 1. Garante a inicialização da comunicação com o sistema nativo
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // 2. Inicializa o banco de dados
+  await _initializeDatabase();
+
+  runApp(const AppWidget());
+}
+
+Future<void> _initializeDatabase() async {
   try {
-    final db = await DbHelper.instance.database;
+    await DbHelper.instance.database;
     debugPrint('✅ SQLite inicializado com sucesso!');
   } catch (e) {
     debugPrint('❌ Erro ao inicializar SQLite: $e');
-  }
-
-  runApp(const AppEntry());
-}
-
-class AppEntry extends StatelessWidget {
-  const AppEntry({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return AppWidget();
   }
 }

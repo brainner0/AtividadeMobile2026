@@ -4,6 +4,8 @@ import '../../../../shared/mixins/messages_mixin.dart';
 import '../../../../shared/widgets/app_logo.dart';
 import '../../../../shared/widgets/custom_button.dart';
 import '../../../../shared/widgets/custom_text_field.dart';
+import '../../../../../models/usuario_model.dart';
+import '../../../../../repositories/usuario_repository.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -14,6 +16,7 @@ class RegisterPage extends StatefulWidget {
 
 class _RegisterPageState extends State<RegisterPage> with MessagesMixin {
   final _formKey = GlobalKey<FormState>();
+  final _usuarioRepository = UsuarioRepository();
   late TextEditingController nomeController;
   late TextEditingController emailController;
   late TextEditingController senhaController;
@@ -37,12 +40,32 @@ class _RegisterPageState extends State<RegisterPage> with MessagesMixin {
     super.dispose();
   }
 
-  void _executarRegistro() {
-    if (!_formKey.currentState!.validate()) return;
+  Future<void> _executarRegistro() async {
+  if (!_formKey.currentState!.validate()) return;
 
-    showSuccess('Registro realizado com sucesso');
-    Navigator.of(context).pop();
+  final usuarioExistente = await _usuarioRepository
+      .buscarPorEmail(emailController.text.trim());
+
+  if (usuarioExistente != null) {
+    showError('Já existe um usuário com este e-mail');
+    return;
   }
+
+  final usuario = UsuarioModel(
+    nome: nomeController.text.trim(),
+    email: emailController.text.trim(),
+    senha: senhaController.text.trim(),
+    createdAt: DateTime.now().toIso8601String(),
+  );
+
+  await _usuarioRepository.salvar(usuario);
+
+  showSuccess('Usuário cadastrado com sucesso');
+
+  if (!mounted) return;
+
+  Navigator.of(context).pop();
+}
 
   @override
   Widget build(BuildContext context) {

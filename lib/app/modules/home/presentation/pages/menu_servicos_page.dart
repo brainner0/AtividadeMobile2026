@@ -4,6 +4,7 @@ import '../../../clientes/presentation/pages/cadastro_cliente_page.dart';
 import '../../../ordens_servico/presentation/pages/cadastro_os_page.dart';
 import '../../../ordens_servico/presentation/pages/listar_os_page.dart';
 import '../../../dashboard/presentation/pages/dashboard_gestao_page.dart';
+import '../../../usuarios/presentation/pages/listar_usuarios_page.dart';
 
 class MenuServicosPage extends StatelessWidget {
   const MenuServicosPage({super.key});
@@ -25,6 +26,12 @@ class MenuServicosPage extends StatelessWidget {
     final theme = Theme.of(context);
 
     final menuItems = [
+      _MenuItem(
+        icon: Icons.people_outline,
+        title: 'Usuários',
+        subtitle: 'Visualizar usuários cadastrados',
+        page: const ListarUsuariosPage(),
+        ),
       _MenuItem(
         icon: Icons.dashboard_outlined,
         title: 'Dashboard de Gestão',

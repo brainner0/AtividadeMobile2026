@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import 'app_routes.dart';
 import 'core/theme/app_theme.dart';
 
@@ -9,8 +10,13 @@ class AppWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'ServiceFlow',
+
+      debugShowCheckedModeBanner: false,
+
       theme: AppTheme.light,
+
       initialRoute: AppRoutes.splash,
+
       routes: AppRoutes.routes,
     );
   }

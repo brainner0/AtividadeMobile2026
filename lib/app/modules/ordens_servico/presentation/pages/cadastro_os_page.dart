@@ -3,12 +3,13 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
-import '../../../clientes/cliente.model.dart';
+import '../../../../../models/cliente_model.dart';
 import '../../../../shared/mixins/loader_mixin.dart';
 import '../../../../shared/widgets/custom_button.dart';
 import '../../../../shared/widgets/custom_text_field.dart';
 import '../../../../../models/ordem_servico_model.dart';
 import '../../../../../repositories/ordem_servico_repository.dart';
+import '../../../../../repositories/cliente_repository.dart';
 
 class CadastroOsPage extends StatefulWidget {
   const CadastroOsPage({super.key});
@@ -25,19 +26,18 @@ class _CadastroOsPageState extends State<CadastroOsPage> with LoaderMixin {
 
   final ImagePicker _imagePicker = ImagePicker();
   final OrdemServicoRepository _osRepository = OrdemServicoRepository();
+  final ClienteRepository _clienteRepository = ClienteRepository();
 
-  // Dados em memória para clientes (simulando banco de dados)
-  final List<Cliente> _clientes = [
-    Cliente(nome: 'João Silva', email: 'joao@email.com', telefone: '(11) 99999-0001'),
-    Cliente(nome: 'Maria Santos', email: 'maria@email.com', telefone: '(11) 99999-0002'),
-    Cliente(nome: 'Pedro Oliveira', email: 'pedro@email.com', telefone: '(11) 99999-0003'),
-    Cliente(nome: 'Ana Costa', email: 'ana@email.com', telefone: '(11) 99999-0004'),
-    Cliente(nome: 'Carlos Ferreira', email: 'carlos@email.com', telefone: '(11) 99999-0005'),
-  ];
 
-  Cliente? _clienteSelecionado;
+  ClienteModel? _clienteSelecionado;
+  List<ClienteModel> _clientes = [];
   XFile? _fotoAntes;
 
+@override
+void initState() {
+  super.initState();
+  _carregarClientes();
+}
   @override
   void dispose() {
     _descricaoController.dispose();
@@ -46,6 +46,13 @@ class _CadastroOsPageState extends State<CadastroOsPage> with LoaderMixin {
     super.dispose();
   }
 
+Future<void> _carregarClientes() async {
+  final clientes = await _clienteRepository.listar();
+
+  setState(() {
+    _clientes = clientes;
+  });
+}
   Future<void> _tirarFotoAntes() async {
     try {
       final XFile? foto = await _imagePicker.pickImage(
@@ -160,19 +167,19 @@ class _CadastroOsPageState extends State<CadastroOsPage> with LoaderMixin {
                 style: Theme.of(context).textTheme.titleMedium,
               ),
               const SizedBox(height: 8),
-              DropdownButtonFormField<Cliente>(
+              DropdownButtonFormField<ClienteModel >(
                 value: _clienteSelecionado,
                 decoration: const InputDecoration(
                   border: OutlineInputBorder(),
                   hintText: 'Selecione um cliente',
                 ),
                 items: _clientes.map((cliente) {
-                  return DropdownMenuItem<Cliente>(
+                  return DropdownMenuItem<ClienteModel >(
                     value: cliente,
                     child: Text(cliente.nome),
                   );
                 }).toList(),
-                onChanged: (Cliente? value) {
+                onChanged: (ClienteModel? value) {
                   setState(() {
                     _clienteSelecionado = value;
                   });

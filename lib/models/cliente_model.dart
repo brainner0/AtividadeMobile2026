@@ -1,33 +1,43 @@
 class ClienteModel {
-  int? id;
-  String nome;
-  String telefone;
-  DateTime? createdAt;
+  final int? id;
+  final String nome;
+  final String documento;
+  final String email;
+  final String telefone;
+  final String? endereco;
+  final String dataCriacao;
 
   ClienteModel({
     this.id,
     required this.nome,
+    required this.documento,
+    required this.email,
     required this.telefone,
-    this.createdAt,
+    this.endereco,
+    required this.dataCriacao,
   });
+
+  factory ClienteModel.fromMap(Map<String, dynamic> map) {
+    return ClienteModel(
+      id: map['id'] as int?,
+      nome: map['nome'] ?? '',
+      documento: map['documento'] ?? '',
+      email: map['email'] ?? '',
+      telefone: map['telefone'] ?? '',
+      endereco: map['endereco'],
+      dataCriacao: map['dataCriacao'] ?? '',
+    );
+  }
 
   Map<String, dynamic> toMap() {
     return {
       'id': id,
       'nome': nome,
+      'documento': documento,
+      'email': email,
       'telefone': telefone,
-      'created_at': createdAt?.toIso8601String(),
+      'endereco': endereco,
+      'dataCriacao': dataCriacao,
     };
-  }
-
-  factory ClienteModel.fromMap(Map<String, dynamic> map) {
-    return ClienteModel(
-      id: map['id'],
-      nome: map['nome'] ?? '',
-      telefone: map['telefone'] ?? '',
-      createdAt: map['created_at'] != null
-          ? DateTime.tryParse(map['created_at'].toString())
-          : null,
-    );
   }
 }

@@ -6,6 +6,8 @@ import 'package:serviceflow/app/core/helpers/messages_mixin.dart';
 import 'package:serviceflow/app/shared/widgets/app_logo.dart';
 import 'package:serviceflow/app/shared/widgets/custom_button.dart';
 import 'package:serviceflow/app/shared/widgets/custom_text_field.dart';
+import '../../../../../models/cliente_model.dart';
+import '../../../../../repositories/cliente_repository.dart';
 
 class CadastroClientePage extends StatefulWidget {
   const CadastroClientePage({super.key});
@@ -18,6 +20,7 @@ class _CadastroClientePageState extends State<CadastroClientePage>
     with MessagesMixin, LoaderMixin {
   final _formKey = GlobalKey<FormState>();
 
+  final _clienteRepository = ClienteRepository();
   final _nomeController = TextEditingController();
   final _cpfCnpjController = TextEditingController();
   final _emailController = TextEditingController();
@@ -64,20 +67,36 @@ class _CadastroClientePageState extends State<CadastroClientePage>
   }
 
   Future<void> _salvar() async {
-    if (!(_formKey.currentState?.validate() ?? false)) {
-      return;
-    }
+  if (!(_formKey.currentState?.validate() ?? false)) {
+    return;
+  }
 
+  try {
     showLoader();
 
-    await Future.delayed(const Duration(seconds: 1));
+    final cliente = ClienteModel(
+      nome: _nomeController.text.trim(),
+      documento: _cpfCnpjController.text.trim(),
+      email: _emailController.text.trim(),
+      telefone: _telefoneController.text.trim(),
+      dataCriacao: DateTime.now().toIso8601String(),
+    );
+
+    await _clienteRepository.salvar(cliente);
 
     if (!mounted) return;
 
     hideLoader();
     showSuccess('Cliente cadastrado com sucesso!');
     Navigator.of(context).pop();
+  } catch (e) {
+    hideLoader();
+
+    if (!mounted) return;
+
+    showError('Erro ao cadastrar cliente: $e');
   }
+}
 
   @override
   Widget build(BuildContext context) {

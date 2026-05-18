@@ -5,6 +5,7 @@ import '../../../ordens_servico/presentation/pages/cadastro_os_page.dart';
 import '../../../ordens_servico/presentation/pages/listar_os_page.dart';
 import '../../../dashboard/presentation/pages/dashboard_gestao_page.dart';
 import '../../../usuarios/presentation/pages/listar_usuarios_page.dart';
+import '../../../clientes/presentation/pages/listar_clientes_page.dart';
 
 class MenuServicosPage extends StatelessWidget {
   const MenuServicosPage({super.key});
@@ -43,6 +44,12 @@ class MenuServicosPage extends StatelessWidget {
         title: 'Cadastrar Cliente',
         subtitle: 'Cadastrar dados do cliente',
         page: const CadastroClientePage(),
+      ),
+      _MenuItem(
+        icon: Icons.people_alt_outlined,
+        title: 'Listar Clientes',
+        subtitle: 'Visualizar clientes cadastrados',
+        page: const ListarClientesPage(),
       ),
       _MenuItem(
         icon: Icons.assignment_add,

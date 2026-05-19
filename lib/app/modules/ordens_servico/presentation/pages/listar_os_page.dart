@@ -148,6 +148,19 @@ class _ListarOsPageState extends State<ListarOsPage> {
                                 const SizedBox(height: 4),
                                 Text(
                                   'Telefone: ${os.clienteTelefone}',
+                                  
+                                  style: theme.textTheme.bodyMedium,
+                                ),
+                                const SizedBox(height: 6),
+                                Text(
+                                  'Técnico: ${os.tecnicoNome}',
+                                  style: theme.textTheme.bodyMedium,
+                                ),
+
+                                const SizedBox(height: 4),
+
+                                Text(
+                                  'Serviço: ${os.servicoNome}',
                                   style: theme.textTheme.bodyMedium,
                                 ),
                                 const SizedBox(height: 8),
@@ -162,14 +175,14 @@ class _ListarOsPageState extends State<ListarOsPage> {
                                 const SizedBox(height: 8),
                                 Row(
                                   children: [
-                                    const Icon(
-                                      Icons.access_time,
+                                    Icon(
+                                      _getStatusIcon(os.status),
                                       size: 16,
-                                      color: Colors.orange,
+                                      color: _getStatusColor(os.status),
                                     ),
                                     const SizedBox(width: 4),
                                     Text(
-                                      'Em andamento',
+                                      _formatarStatus(os.status),
                                       style: theme.textTheme.bodySmall?.copyWith(
                                         color: Colors.orange,
                                       ),
@@ -206,4 +219,39 @@ class _ListarOsPageState extends State<ListarOsPage> {
       return '${data.day}/${data.month}/${data.year}';
     }
   }
+  Color _getStatusColor(String status) {
+  switch (status) {
+    case 'finalizada':
+      return Colors.green;
+    case 'cancelada':
+      return Colors.red;
+    case 'em_andamento':
+    default:
+      return Colors.orange;
+  }
+}
+
+IconData _getStatusIcon(String status) {
+  switch (status) {
+    case 'finalizada':
+      return Icons.check_circle;
+    case 'cancelada':
+      return Icons.cancel;
+    case 'em_andamento':
+    default:
+      return Icons.access_time;
+  }
+}
+
+String _formatarStatus(String status) {
+  switch (status) {
+    case 'finalizada':
+      return 'Finalizada';
+    case 'cancelada':
+      return 'Cancelada';
+    case 'em_andamento':
+    default:
+      return 'Em andamento';
+  }
+}
 }

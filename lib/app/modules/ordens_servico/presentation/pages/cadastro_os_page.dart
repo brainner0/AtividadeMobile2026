@@ -9,7 +9,14 @@ import '../../../../shared/widgets/custom_button.dart';
 import '../../../../shared/widgets/custom_text_field.dart';
 import '../../../../../models/ordem_servico_model.dart';
 import '../../../../../repositories/ordem_servico_repository.dart';
+
 import '../../../../../repositories/cliente_repository.dart';
+
+import '../../../../../models/tecnico_model.dart';
+import '../../../../../models/servico_model.dart';
+
+import '../../../../../repositories/tecnico_repository.dart';
+import '../../../../../repositories/servico_repository.dart';
 
 class CadastroOsPage extends StatefulWidget {
   const CadastroOsPage({super.key});
@@ -24,33 +31,70 @@ class _CadastroOsPageState extends State<CadastroOsPage> with LoaderMixin {
   final _valorController = TextEditingController();
   final _clienteDropdown = TextEditingController();
 
-  final ImagePicker _imagePicker = ImagePicker();
-  final OrdemServicoRepository _osRepository = OrdemServicoRepository();
-  final ClienteRepository _clienteRepository = ClienteRepository();
+  final ImagePicker _imagePicker = 
+    ImagePicker();
+
+  final OrdemServicoRepository _osRepository = 
+    OrdemServicoRepository();
+
+  final ClienteRepository _clienteRepository =
+    ClienteRepository();
+  
+  final TecnicoRepository _tecnicoRepository =
+    TecnicoRepository();
+
+  final ServicoRepository _servicoRepository =
+    ServicoRepository();
 
 
   ClienteModel? _clienteSelecionado;
+  TecnicoModel? _tecnicoSelecionado;
+  ServicoModel? _servicoSelecionado;
+  
   List<ClienteModel> _clientes = [];
+  List<TecnicoModel> _tecnicos = [];
+  List<ServicoModel> _servicos = [];
+
   XFile? _fotoAntes;
 
 @override
 void initState() {
   super.initState();
+
   _carregarClientes();
+  _carregarTecnicos();
+  _carregarServicos();
 }
-  @override
-  void dispose() {
-    _descricaoController.dispose();
-    _valorController.dispose();
-    _clienteDropdown.dispose();
-    super.dispose();
-  }
+
+@override
+void dispose() {
+  _descricaoController.dispose();
+  _valorController.dispose();
+  _clienteDropdown.dispose();
+  super.dispose();
+}
 
 Future<void> _carregarClientes() async {
   final clientes = await _clienteRepository.listar();
 
   setState(() {
     _clientes = clientes;
+  });
+}
+
+Future<void> _carregarTecnicos() async {
+  final tecnicos = await _tecnicoRepository.listar();
+
+  setState(() {
+    _tecnicos = tecnicos;
+  });
+}
+
+Future<void> _carregarServicos() async {
+  final servicos = await _servicoRepository.listar();
+
+  setState(() {
+    _servicos = servicos;
   });
 }
   Future<void> _tirarFotoAntes() async {
@@ -85,11 +129,25 @@ Future<void> _carregarClientes() async {
     if (!_formKey.currentState!.validate()) return;
 
     if (_clienteSelecionado == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Selecione um cliente')),
-      );
-      return;
-    }
+  ScaffoldMessenger.of(context).showSnackBar(
+    const SnackBar(content: Text('Selecione um cliente')),
+  );
+  return;
+}
+
+if (_tecnicoSelecionado == null) {
+  ScaffoldMessenger.of(context).showSnackBar(
+    const SnackBar(content: Text('Selecione um técnico')),
+  );
+  return;
+}
+
+if (_servicoSelecionado == null) {
+  ScaffoldMessenger.of(context).showSnackBar(
+    const SnackBar(content: Text('Selecione um serviço')),
+  );
+  return;
+}
 
     // Foto antes é obrigatória
     if (_fotoAntes == null) {
@@ -104,12 +162,14 @@ Future<void> _carregarClientes() async {
 
       // Criar objeto OS
       final os = OrdemServicoModel(
-        clienteNome: _clienteSelecionado!.nome,
-        clienteTelefone: _clienteSelecionado!.telefone,
-        descricao: _descricaoController.text.trim(),
-        valor: double.parse(_valorController.text.replaceAll(',', '.')),
-        fotoAntesPath: _fotoAntes!.path,
-      );
+      clienteNome: _clienteSelecionado!.nome,
+      clienteTelefone: _clienteSelecionado!.telefone,
+      tecnicoNome: _tecnicoSelecionado!.nome,
+      servicoNome: _servicoSelecionado!.nome,
+      descricao: _descricaoController.text.trim(),
+      valor: double.parse(_valorController.text.replaceAll(',', '.')),
+      fotoAntesPath: _fotoAntes!.path,
+);
 
       // Salvar no banco
       await _osRepository.salvar(os);
@@ -130,9 +190,11 @@ Future<void> _carregarClientes() async {
         _valorController.clear();
         _clienteDropdown.clear();
         setState(() {
-          _clienteSelecionado = null;
-          _fotoAntes = null;
-        });
+  _clienteSelecionado = null;
+  _tecnicoSelecionado = null;
+  _servicoSelecionado = null;
+  _fotoAntes = null;
+});
       }
     } catch (e) {
       hideLoader();
@@ -207,6 +269,84 @@ Future<void> _carregarClientes() async {
                 },
               ),
               const SizedBox(height: 20),
+
+              Text(
+  'Técnico',
+  style: Theme.of(context).textTheme.titleMedium,
+),
+
+const SizedBox(height: 8),
+
+DropdownButtonFormField<TecnicoModel>(
+  value: _tecnicoSelecionado,
+
+  decoration: const InputDecoration(
+    border: OutlineInputBorder(),
+    hintText: 'Selecione um técnico',
+  ),
+
+  items: _tecnicos.map((tecnico) {
+    return DropdownMenuItem<TecnicoModel>(
+      value: tecnico,
+      child: Text(tecnico.nome),
+    );
+  }).toList(),
+
+  onChanged: (TecnicoModel? value) {
+    setState(() {
+      _tecnicoSelecionado = value;
+    });
+  },
+
+  validator: (value) {
+    if (value == null) {
+      return 'Selecione um técnico';
+    }
+
+    return null;
+  },
+),
+
+const SizedBox(height: 20),
+
+Text(
+  'Serviço',
+  style: Theme.of(context).textTheme.titleMedium,
+),
+
+const SizedBox(height: 8),
+
+DropdownButtonFormField<ServicoModel>(
+  value: _servicoSelecionado,
+
+  decoration: const InputDecoration(
+    border: OutlineInputBorder(),
+    hintText: 'Selecione um serviço',
+  ),
+
+  items: _servicos.map((servico) {
+    return DropdownMenuItem<ServicoModel>(
+      value: servico,
+      child: Text(servico.nome),
+    );
+  }).toList(),
+
+  onChanged: (ServicoModel? value) {
+    setState(() {
+      _servicoSelecionado = value;
+    });
+  },
+
+  validator: (value) {
+    if (value == null) {
+      return 'Selecione um serviço';
+    }
+
+    return null;
+  },
+),
+
+const SizedBox(height: 20),
 
               // Valor
               CustomTextField(

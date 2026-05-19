@@ -6,6 +6,10 @@ import '../../../ordens_servico/presentation/pages/listar_os_page.dart';
 import '../../../dashboard/presentation/pages/dashboard_gestao_page.dart';
 import '../../../usuarios/presentation/pages/listar_usuarios_page.dart';
 import '../../../clientes/presentation/pages/listar_clientes_page.dart';
+import '../../../tecnicos/presentation/pages/cadastro_tecnico_page.dart';
+import '../../../tecnicos/presentation/pages/listar_tecnicos_page.dart';
+import '../../../servicos/presentation/pages/cadastro_servico_page.dart';
+import '../../../servicos/presentation/pages/listar_servicos_page.dart';
 
 class MenuServicosPage extends StatelessWidget {
   const MenuServicosPage({super.key});
@@ -62,6 +66,31 @@ class MenuServicosPage extends StatelessWidget {
         title: 'Finalizar OS',
         subtitle: 'Concluir uma ordem de serviço existente',
         page: const ListarOsPage(),
+      ),
+      _MenuItem(
+        icon: Icons.engineering_outlined,
+        title: 'Cadastrar Técnico',
+        subtitle: 'Cadastrar dados do técnico',
+        page: const CadastroTecnicoPage(),
+      ),
+      _MenuItem(
+        icon: Icons.people_outline,
+        title: 'Listar Técnicos',
+        subtitle: 'Visualizar técnicos cadastrados',
+        page: const ListarTecnicosPage(),
+      ),
+      _MenuItem(
+        icon: Icons.build_circle_outlined,
+        title: 'Cadastrar Serviço',
+        subtitle: 'Cadastrar serviços do sistema',
+        page: const CadastroServicoPage(),
+      ),
+
+      _MenuItem(
+        icon: Icons.design_services_outlined,
+        title: 'Listar Serviços',
+        subtitle: 'Visualizar serviços cadastrados',
+        page: const ListarServicosPage(),
       ),
     ];
 

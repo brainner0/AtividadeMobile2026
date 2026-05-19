@@ -55,6 +55,25 @@ class DbHelper {
         createdAt TEXT NOT NULL
       )
     ''');
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS tecnicos (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        nome TEXT NOT NULL,
+        email TEXT NOT NULL,
+        telefone TEXT NOT NULL,
+        especialidade TEXT NOT NULL,
+        dataCriacao TEXT NOT NULL
+      )
+    ''');
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS servicos (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        nome TEXT NOT NULL,
+        descricao TEXT NOT NULL,
+        valor REAL NOT NULL,
+        dataCriacao TEXT NOT NULL
+      )
+    ''');
 
     await db.execute('''
       CREATE TABLE IF NOT EXISTS tecnicos (
@@ -78,19 +97,21 @@ class DbHelper {
     ''');
 
     await db.execute('''
-      CREATE TABLE IF NOT EXISTS ordens_servico (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        clienteNome TEXT NOT NULL,
-        clienteTelefone TEXT NOT NULL,
-        descricao TEXT NOT NULL,
-        valor REAL NOT NULL,
-        fotoAntesPath TEXT NOT NULL,
-        fotoDepoisPath TEXT,
-        assinaturaPath TEXT,
-        status TEXT NOT NULL DEFAULT 'em_andamento',
-        createdAt TEXT NOT NULL,
-        updatedAt TEXT
-      )
-    ''');
+  CREATE TABLE IF NOT EXISTS ordens_servico (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    clienteNome TEXT NOT NULL,
+    clienteTelefone TEXT NOT NULL,
+    tecnicoNome TEXT NOT NULL,
+    servicoNome TEXT NOT NULL,
+    descricao TEXT NOT NULL,
+    valor REAL NOT NULL,
+    fotoAntesPath TEXT NOT NULL,
+    fotoDepoisPath TEXT,
+    assinaturaPath TEXT,
+    status TEXT NOT NULL DEFAULT 'em_andamento',
+    createdAt TEXT NOT NULL,
+    updatedAt TEXT
+  )
+''');
   }
 }
